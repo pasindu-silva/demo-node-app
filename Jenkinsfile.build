@@ -29,7 +29,7 @@ pipeline {
     post {
         success {
             // Trigger the deploy pipeline
-            build job: 'Demo_App_Build_Pipeline', parameters: [string(name: 'BUILD_ID', value: "${env.BUILD_ID}")]
+            build job: 'Demo_App_Deploy_Pipeline', parameters: [string(name: 'BUILD_ID', value: "${env.BUILD_ID}")]
         }
     }
 }
