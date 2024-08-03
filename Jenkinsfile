@@ -11,12 +11,11 @@ pipeline {
     }
     
     stages {
-        stage('Clone repo') {
-            steps {
-                git url: 'https://github.com/pasindu-silva/demo-node-app.git', branch: 'main'
-            }
-        }
-        
+        // stage('Clone repo') {
+        //     steps {
+        //         git url: 'https://github.com/pasindu-silva/demo-node-app.git', branch: 'main'
+        //     }
+        // }
         stage('Build docker image') {
             steps {
                 script {
