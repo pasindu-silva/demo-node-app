@@ -5,6 +5,7 @@ pipeline {
         DOCKER_HUB_REPO = 'pasindusilvartc/demo-node-app-repo'
         DOCKER_HUB_CREDENTIALS_ID = 'demoapp-dockerhub-credentials-id'
         BUILD_PIPELINE_NAME = 'demoapp-deploy-prod-pipeline'
+        GITHUB_RELEASE_TAG = "${env.GIT_TAG_NAME}"
     }
     
     stages {        
@@ -12,6 +13,7 @@ pipeline {
             steps {
                 script {
                     dockerImage = docker.build("${DOCKER_HUB_REPO}:${env.BUILD_ID}")
+                    echo "${GITHUB_RELEASE_TAG}"
                 }
             }
         }
