@@ -8,11 +8,6 @@ pipeline {
         GITHUB_RELEASE_TAG = "${env.GIT_TAG_NAME}"
     }
 
-    triggers {
-        // This will only be triggered by GitHub webhooks
-        githubPush()
-    }
-
     stages {        
         stage('Build docker image') {
             steps {
