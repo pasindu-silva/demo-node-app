@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_HUB_REPO = 'pasindusilvartc/demo-node-app-repo'
-        DOCKER_HUB_CREDENTIALS_ID = 'PASINDU_DOCKER_HUB_CREDENTIALS_ID'
+        DOCKER_HUB_CREDENTIALS_ID = 'demoapp-dockerhub-credentials-id'
     }
     
     stages {        
