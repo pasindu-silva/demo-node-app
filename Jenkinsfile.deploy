@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_HUB_REPO = 'pasindusilvartc/demo-node-app-repo'
-        SSH_CREDENTIALS_ID = 'PASINDU_AWS_SSH_CREDENTIALS_ID'
+        SSH_CREDENTIALS_ID = 'demoapp-aws-ssh-credentials-id'
         EC2_HOST = '54.210.66.151'
         EC2_USERNAME = 'ubuntu'
         APP_NAME = 'demo-node-app'
