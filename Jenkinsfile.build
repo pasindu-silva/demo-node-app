@@ -12,8 +12,8 @@ pipeline {
         stage('Build docker image') {
             steps {
                 script {
-                    dockerImage = docker.build("${DOCKER_HUB_REPO}:${env.BUILD_ID}")
                     echo "${GITHUB_RELEASE_TAG}"
+                    dockerImage = docker.build("${DOCKER_HUB_REPO}:${env.BUILD_ID}")
                 }
             }
         }
