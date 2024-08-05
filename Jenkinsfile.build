@@ -6,9 +6,25 @@ pipeline {
         DOCKER_HUB_CREDENTIALS_ID = 'demoapp-dockerhub-credentials-id'
         BUILD_PIPELINE_NAME = 'demoapp-deploy-prod-pipeline'
         GITHUB_RELEASE_TAG = "${env.GIT_TAG_NAME}"
+        GITHUB_REPO = 'pasindu-silva/demo-node-app'
     }
 
-    stages {        
+    stages {
+        stage('Get GitHub Release Tag') {
+            steps {
+                script {
+                    def branchOrTag = env.GIT_BRANCH ?: env.BRANCH_NAME ?: 'main'
+                    def response = githubApiCall(
+                        credentialsId: "${GITHUB_CREDENTIALS_ID}",
+                        url: "https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${branchOrTag}"
+                    )
+                    def json = readJSON text: response
+                    def releaseTag = json.tag_name
+                    echo "GitHub Release Tag: ${releaseTag}"
+                }
+            }
+        }
+
         stage('Build docker image') {
             steps {
                 script {
