@@ -51,18 +51,19 @@ pipeline {
                     sh 'git fetch --tags'
 
                     // Get the latest tag reachable from the current branch
-                    env.GITHUB_RELEASE_TAG = sh(
+                    def releaseTag = sh(
                         script: 'git describe --tags --abbrev=0',
                         returnStdout: true
                     ).trim()
+                    echo "My release tag ${releaseTag}"
 
-                    if (!env.GITHUB_RELEASE_TAG) {
-                        // If no tag is found, set a default value or handle it accordingly
-                        env.GITHUB_RELEASE_TAG = 'no-tag-found'
-                    }
+                    // if (releaseTag) {
+                    //     // If no tag is found, set a default value or handle it accordingly
+                    //     env.GITHUB_RELEASE_TAG = 'no-tag-found'
+                    // }
 
                     // Print the tag
-                    echo "GitHub Release Tag: ${env.GITHUB_RELEASE_TAG}"
+                    echo "GitHub Release Tag: ${releaseTag}"
                 }
             }
         }
