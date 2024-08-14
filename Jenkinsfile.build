@@ -11,22 +11,36 @@ pipeline {
     }
 
     stages {
-        stage('Get GitHub Release Tag') {
+         stage('Checkout') {
             steps {
-                script {
-                    // Get the name of the branch or tag being built
-                    def branchOrTag = env.BRANCH_NAME
-                    echo "Building for branch/tag: ${branchOrTag}"
-
-                    // Call the GitHub API to get the release information for the tag
-                    def response = githubApiCall("${GITHUB_CREDENTIALS_ID}", "https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${branchOrTag}")
-                    def json = readJSON text: response
-                    def releaseTag = json.tag_name
-                    echo "GitHub Release Tag: ${releaseTag}"
-                }
+                // Checkout the code
+                checkout scm
             }
         }
 
+        stage('Get GitHub Release Tag') {
+            steps {
+                script {
+                    // Fetch all tags from the remote
+                    sh 'git fetch --tags'
+
+                    // Get the latest tag associated with the current commit
+                    env.GITHUB_RELEASE_TAG = sh(
+                        script: "git tag --points-at HEAD",
+                        returnStdout: true
+                    ).trim()
+
+                    if (!env.GITHUB_RELEASE_TAG) {
+                        // If no tag is found, set a default value or handle it accordingly
+                        env.GITHUB_RELEASE_TAG = 'no-tag-found'
+                    }
+
+                    // Print the tag
+                    echo "GitHub Release Tag: ${env.GITHUB_RELEASE_TAG}"
+                }
+            }
+        }
+        
         stage('Build docker image') {
             steps {
                 script {
@@ -55,13 +69,6 @@ pipeline {
             // Trigger the deploy pipeline
             build job: "${BUILD_PIPELINE_NAME}", parameters: [string(name: 'BUILD_ID', value: "${env.BUILD_ID}")]
         }
-    }
-}
-
-def githubApiCall(credentialsId, url) {
-    withCredentials([usernamePassword(credentialsId: credentialsId, usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')]) {
-        def response = sh(script: "curl -u ${GITHUB_USERNAME}:${GITHUB_TOKEN} ${url}", returnStdout: true).trim()
-        return response
     }
 }
 
