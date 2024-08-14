@@ -45,7 +45,7 @@ pipeline {
                     // Print the tag
                     echo "GitHub Release Tag: ${releaseTag}"
                     // Save the release tag to an environment variable
-                    env.GITHUB_RELEASE_TAG = releaseTag
+                    GITHUB_RELEASE_TAG = releaseTag
                 }
             }
         }
@@ -53,11 +53,9 @@ pipeline {
         stage('Build docker image') {
             steps {
                 script {
-                    withEnv(["GITHUB_RELEASE_TAG=${env.GITHUB_RELEASE_TAG}"]) {
-                        echo "${GITHUB_RELEASE_TAG}"
-                        // dockerImage = docker.build("${DOCKER_HUB_REPO}:${env.BUILD_ID}")
-                        dockerImage = docker.build("${DOCKER_HUB_REPO}:${GITHUB_RELEASE_TAG}")
-                    }
+                    echo "${GITHUB_RELEASE_TAG}"
+                    // dockerImage = docker.build("${DOCKER_HUB_REPO}:${env.BUILD_ID}")
+                    dockerImage = docker.build("${DOCKER_HUB_REPO}:${GITHUB_RELEASE_TAG}")
                 }
             }
         }
