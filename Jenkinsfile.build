@@ -14,32 +14,14 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    // Checkout the code using Jenkins credentials binding
+                    // Checkout the repository because things like release tags need to be accessed later
                     checkout([$class: 'GitSCM',
-                              branches: [[name: '*/main']], // Change to your desired branch
+                              branches: [[name: '*/main']], // Check the tags for the branch main
                               doGenerateSubmoduleConfigurations: false,
                               extensions: [],
                               userRemoteConfigs: [[url: "https://github.com/${GITHUB_REPO}.git",
                                                    credentialsId: "${GITHUB_CREDENTIALS_ID}"]]
                     ])
-                }
-            }
-        }
-
-        stage('List All Tags') {
-            steps {
-                script {
-                    // Fetch all tags from the remote
-                    sh 'git fetch --tags'
-
-                    // List all tags
-                    def allTags = sh(
-                        script: 'git tag -l',
-                        returnStdout: true
-                    ).trim()
-
-                    // Print all tags
-                    echo "All Git Tags:\n${allTags}"
                 }
             }
         }
@@ -55,15 +37,15 @@ pipeline {
                         script: 'git describe --tags --abbrev=0',
                         returnStdout: true
                     ).trim()
-                    echo "My release tag ${releaseTag}"
 
-                    // if (releaseTag) {
-                    //     // If no tag is found, set a default value or handle it accordingly
-                    //     env.GITHUB_RELEASE_TAG = 'no-tag-found'
-                    // }
+                    if (!releaseTag) {
+                        error 'No release tag found. Terminating the pipeline.'
+                    }
 
                     // Print the tag
                     echo "GitHub Release Tag: ${releaseTag}"
+                    // Save the release tag to an environment variable
+                    env.GITHUB_RELEASE_TAG = releaseTag
                 }
             }
         }
@@ -72,7 +54,8 @@ pipeline {
             steps {
                 script {
                     echo "${GITHUB_RELEASE_TAG}"
-                    dockerImage = docker.build("${DOCKER_HUB_REPO}:${env.BUILD_ID}")
+                    // dockerImage = docker.build("${DOCKER_HUB_REPO}:${env.BUILD_ID}")
+                    dockerImage = docker.build("${DOCKER_HUB_REPO}:${GITHUB_RELEASE_TAG}")
                 }
             }
         }
