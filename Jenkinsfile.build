@@ -14,19 +14,14 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIALS_ID}", passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                        sh 'git config --global credential.helper store'
-                        sh "git config --global credential.username ${GIT_USERNAME}"
-                        sh "git config --global credential.password ${GIT_PASSWORD}"
-
-                        // Checkout the code using the credentials
-                        checkout([$class: 'GitSCM',
-                                  branches: [[name: '*/main']],
-                                  doGenerateSubmoduleConfigurations: false,
-                                  extensions: [],
-                                  userRemoteConfigs: [[url: "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/${GITHUB_REPO}.git"]]
-                        ])
-                    }
+                    // Checkout the code using Jenkins credentials binding
+                    checkout([$class: 'GitSCM',
+                              branches: [[name: '*/main']], // Change to your desired branch
+                              doGenerateSubmoduleConfigurations: false,
+                              extensions: [],
+                              userRemoteConfigs: [[url: "https://github.com/${GITHUB_REPO}.git",
+                                                   credentialsId: "${GITHUB_CREDENTIALS_ID}"]]
+                    ])
                 }
             }
         }
