@@ -77,7 +77,7 @@ pipeline {
         }
         success {
             // Trigger the deploy pipeline
-            build job: "${BUILD_PIPELINE_NAME}", parameters: [string(name: 'RELEASE_TAG', value: "${GITHUB_RELEASE_TAG}")]
+            build job: "${BUILD_PIPELINE_NAME}", parameters: [string(name: 'GITHUB_RELEASE_TAG', value: "${GITHUB_RELEASE_TAG}")]
         }
     }
 }
