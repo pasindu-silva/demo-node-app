@@ -31,15 +31,15 @@ pipeline {
             }
         }
 
-        stage('Get GitHub Release Tag') {
+        stage('Get Latest Release Tag') {
             steps {
                 script {
                     // Fetch all tags from the remote
                     sh 'git fetch --tags'
 
-                    // Get the latest tag associated with the current commit
+                    // Get the latest tag reachable from the current branch
                     env.GITHUB_RELEASE_TAG = sh(
-                        script: 'git tag --points-at HEAD',
+                        script: 'git describe --tags --abbrev=0',
                         returnStdout: true
                     ).trim()
 
