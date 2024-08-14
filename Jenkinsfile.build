@@ -11,29 +11,29 @@ pipeline {
     }
 
     stages {
-        // stage('Get GitHub Release Tag') {
-        //     steps {
-        //         script {
-        //             // Helper function to call GitHub API
-        //             def callGitHubApi = { credentialsId, url ->
-        //                 withCredentials([string(credentialsId: credentialsId, variable: 'GITHUB_TOKEN')]) {
-        //                     def response = sh(script: "curl -H 'Authorization: token ${GITHUB_TOKEN}' ${url}", returnStdout: true).trim()
-        //                     return response
-        //                 }
-        //             }
+        stage('Get GitHub Release Tag') {
+            steps {
+                script {
+                    // Helper function to call GitHub API
+                    def callGitHubApi = { credentialsId, url ->
+                        withCredentials([string(credentialsId: credentialsId, variable: 'GITHUB_TOKEN')]) {
+                            def response = sh(script: "curl -H 'Authorization: token ${GITHUB_TOKEN}' ${url}", returnStdout: true).trim()
+                            return response
+                        }
+                    }
 
-        //             // Get the name of the branch or tag being built
-        //             def branchOrTag = env.BRANCH_NAME
-        //             echo "Building for branch/tag: ${branchOrTag}"
+                    // Get the name of the branch or tag being built
+                    def branchOrTag = env.BRANCH_NAME
+                    echo "Building for branch/tag: ${branchOrTag}"
 
-        //             // Call the GitHub API to get the release information for the tag
-        //             def response = callGitHubApi("${GITHUB_CREDENTIALS_ID}", "https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${branchOrTag}")
-        //             def json = readJSON text: response
-        //             def releaseTag = json.tag_name
-        //             echo "GitHub Release Tag: ${releaseTag}"
-        //         }
-        //     }
-        // }
+                    // Call the GitHub API to get the release information for the tag
+                    def response = callGitHubApi("${GITHUB_CREDENTIALS_ID}", "https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${branchOrTag}")
+                    def json = readJSON text: response
+                    def releaseTag = json.tag_name
+                    echo "GitHub Release Tag: ${releaseTag}"
+                }
+            }
+        }
 
         stage('Build docker image') {
             steps {
