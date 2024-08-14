@@ -10,7 +10,7 @@ pipeline {
     }
     
     parameters {
-        string(name: 'RELEASE_TAG', defaultValue: '', description: 'Release tag of the build to deploy')
+        string(name: 'GITHUB_RELEASE_TAG', defaultValue: '', description: 'Release tag of the build to deploy')
     }
     
     stages {
