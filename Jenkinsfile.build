@@ -11,10 +11,23 @@ pipeline {
     }
 
     stages {
-         stage('Checkout') {
+        stage('Checkout') {
             steps {
-                // Checkout the code
-                checkout scm
+                script {
+                    withCredentials([usernamePassword(credentialsId: "${GITHUB_CREDENTIALS_ID}", passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                        sh 'git config --global credential.helper store'
+                        sh "git config --global credential.username ${GIT_USERNAME}"
+                        sh "git config --global credential.password ${GIT_PASSWORD}"
+
+                        // Checkout the code using the credentials
+                        checkout([$class: 'GitSCM',
+                                  branches: [[name: '*/main']],
+                                  doGenerateSubmoduleConfigurations: false,
+                                  extensions: [],
+                                  userRemoteConfigs: [[url: "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/${GITHUB_REPO}.git"]]
+                        ])
+                    }
+                }
             }
         }
 
@@ -26,7 +39,7 @@ pipeline {
 
                     // Get the latest tag associated with the current commit
                     env.GITHUB_RELEASE_TAG = sh(
-                        script: "git tag --points-at HEAD",
+                        script: 'git tag --points-at HEAD',
                         returnStdout: true
                     ).trim()
 
@@ -40,7 +53,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Build docker image') {
             steps {
                 script {
