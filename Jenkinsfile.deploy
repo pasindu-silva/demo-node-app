@@ -10,7 +10,7 @@ pipeline {
     }
     
     parameters {
-        string(name: 'BUILD_ID', defaultValue: '', description: 'Build ID to deploy')
+        string(name: 'RELEASE_TAG', defaultValue: '', description: 'Release tag of the build to deploy')
     }
     
     stages {
@@ -19,10 +19,10 @@ pipeline {
                 sshagent(credentials: ["${SSH_CREDENTIALS_ID}"]) {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} '
-                    sudo docker pull ${DOCKER_HUB_REPO}:${BUILD_ID}
+                    sudo docker pull ${DOCKER_HUB_REPO}:${GITHUB_RELEASE_TAG}
                     sudo docker stop ${APP_NAME} || true
                     sudo docker rm ${APP_NAME} || true
-                    sudo docker run -d --name ${APP_NAME} -p 8080:8080 ${DOCKER_HUB_REPO}:${BUILD_ID}
+                    sudo docker run -d --name ${APP_NAME} -p 8080:8080 ${DOCKER_HUB_REPO}:${GITHUB_RELEASE_TAG}
                     '
                     """
                 }
