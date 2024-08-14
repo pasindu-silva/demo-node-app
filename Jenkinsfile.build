@@ -31,6 +31,24 @@ pipeline {
             }
         }
 
+        stage('List All Tags') {
+            steps {
+                script {
+                    // Fetch all tags from the remote
+                    sh 'git fetch --tags'
+
+                    // List all tags
+                    def allTags = sh(
+                        script: 'git tag -l',
+                        returnStdout: true
+                    ).trim()
+
+                    // Print all tags
+                    echo "All Git Tags:\n${allTags}"
+                }
+            }
+        }
+
         stage('Get Latest Release Tag') {
             steps {
                 script {
