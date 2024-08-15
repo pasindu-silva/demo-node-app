@@ -18,6 +18,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
+                    echo "ENV Params: ${params.ENVIRONMENT}"
+
                     def branchName = getBranchNameByEnvironment(params.ENVIRONMENT)
 
                     // Checkout the repository because things like release tags need to be accessed later
