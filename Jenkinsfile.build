@@ -18,9 +18,9 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    echo "ENV Params: ${params.ENVIRONMENT}"
+                    echo "ENV Params: ${params.ENVIRONMENT_NAME}"
 
-                    def branchName = getBranchNameByEnvironment(params.ENVIRONMENT)
+                    def branchName = getBranchNameByEnvironment(params.ENVIRONMENT_NAME)
 
                     // Checkout the repository because things like release tags need to be accessed later
                     checkout([$class: 'GitSCM',
