@@ -18,9 +18,11 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
+                    def branchName = getBranchNameByEnvironment(params.ENVIRONMENT)
+
                     // Checkout the repository because things like release tags need to be accessed later
                     checkout([$class: 'GitSCM',
-                              branches: [[name: "*/${params.BRANCH_NAME}"]], // Check the tags for the branch main
+                              branches: [[name: "*/${branchName}"]], // Check the tags for the branch main
                               doGenerateSubmoduleConfigurations: false,
                               extensions: [],
                               userRemoteConfigs: [[url: "https://github.com/${GITHUB_REPO}.git",
@@ -83,6 +85,20 @@ pipeline {
             // Trigger the deploy pipeline
             build job: "${BUILD_PIPELINE_NAME}", parameters: [string(name: 'GITHUB_RELEASE_TAG', value: "${GITHUB_RELEASE_TAG}")]
         }
+    }
+}
+
+// Function to get the branch name based on the environment
+def getBranchNameByEnvironment(env) {
+    switch (env) {
+        case 'dev':
+            return 'dev'
+        case 'prod':
+            return 'main'
+        case 'qa':
+            return 'qa'
+        default:
+            error "Invalid environment: ${env}"
     }
 }
 
