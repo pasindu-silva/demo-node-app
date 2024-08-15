@@ -84,8 +84,11 @@ pipeline {
             cleanWs()
         }
         success {
-            // Trigger the deploy pipeline
-            build job: "${BUILD_PIPELINE_NAME}", parameters: [string(name: 'GITHUB_RELEASE_TAG', value: "${GITHUB_RELEASE_TAG}")]
+            // Trigger the deploy pipeline with the GitHub release tag and environment
+            build job: "${BUILD_PIPELINE_NAME}", parameters: [
+                string(name: 'GITHUB_RELEASE_TAG', value: "${GITHUB_RELEASE_TAG}"),
+                string(name: 'ENVIRONMENT_NAME', value: "${params.ENVIRONMENT}")
+            ]
         }
     }
 }
