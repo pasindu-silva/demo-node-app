@@ -21,9 +21,9 @@ pipeline {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} '
                     sudo docker pull ${DOCKER_HUB_REPO}:${GITHUB_RELEASE_TAG}
-                    sudo docker stop ${APP_NAME}-${ENVIRONMENT_NAME} || true
-                    sudo docker rm ${APP_NAME}-${ENVIRONMENT_NAME} || true
-                    sudo docker run -d --name ${APP_NAME}-${ENVIRONMENT_NAME} -p 8080:8080 ${DOCKER_HUB_REPO}:${GITHUB_RELEASE_TAG} --env ENVIRONMENT_NAME=${ENVIRONMENT_NAME}
+                    sudo docker stop ${APP_NAME}-${params.ENVIRONMENT_NAME} || true
+                    sudo docker rm ${APP_NAME}-${params.ENVIRONMENT_NAME} || true
+                    sudo docker run -d --name ${APP_NAME}-${params.ENVIRONMENT_NAME} -p 8080:8080 ${DOCKER_HUB_REPO}:${GITHUB_RELEASE_TAG} --env ENVIRONMENT_NAME=${params.ENVIRONMENT_NAME}
                     '
                     """
                 }
