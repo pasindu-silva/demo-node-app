@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    parameters {
+        choice(name: 'ENVIRONMENT_NAME', choices: ['dev', 'prod', 'qa'], description: 'Select the environment that you want to build. This will take the branch associated with the environment name to build')
+    }
+
     environment {
         DOCKER_HUB_REPO = 'pasindusilvartc/demo-node-app-repo'
         DOCKER_HUB_CREDENTIALS_ID = 'demoapp-dockerhub-credentials-id'
@@ -16,7 +20,7 @@ pipeline {
                 script {
                     // Checkout the repository because things like release tags need to be accessed later
                     checkout([$class: 'GitSCM',
-                              branches: [[name: '*/main']], // Check the tags for the branch main
+                              branches: [[name: "*/${params.BRANCH_NAME}"]], // Check the tags for the branch main
                               doGenerateSubmoduleConfigurations: false,
                               extensions: [],
                               userRemoteConfigs: [[url: "https://github.com/${GITHUB_REPO}.git",
