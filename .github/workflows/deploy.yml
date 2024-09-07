@@ -51,9 +51,13 @@ jobs:
             # Pull the latest Docker image
             sudo docker pull $DOCKER_IMAGE
 
-            # Stop and remove the existing container if running
-            sudo docker stop demo-backend || true
-            sudo docker rm demo-backend || true
+            if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^demo-backend\$"; then
+              echo "Stopping and removing existing container..."
+              sudo docker stop demo-backend
+              sudo docker rm demo-backend
+            else
+              echo "Container demo-backend does not exist, skipping stop and remove steps."
+            fi
 
             # Run the new Docker container
             sudo docker run -d --name demo-backend -p 8080:8080 $DOCKER_IMAGE
