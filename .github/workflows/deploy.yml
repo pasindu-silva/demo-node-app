@@ -7,9 +7,6 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
-    env:
-      DOCKER_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/action-test-node-app  # Define the Docker repository name here
-
     steps:
       # Step 1: Checkout the repository
       - name: Checkout code
@@ -25,26 +22,32 @@ jobs:
       # Step 3: Build the Docker image
       - name: Build Docker image
         run: |
+          DOCKER_REPO=${{ secrets.DOCKERHUB_USERNAME }}/action-test-node-app
+          echo "Building Docker image with repo: $DOCKER_REPO"
           docker build -t $DOCKER_REPO:latest .
 
       # Step 4: Push the Docker image to Docker Hub
       - name: Push Docker image to Docker Hub
         run: |
+          DOCKER_REPO=${{ secrets.DOCKERHUB_USERNAME }}/action-test-node-app
+          echo "Pushing Docker image with repo: $DOCKER_REPO"
           docker push $DOCKER_REPO:latest
 
       # Step 5: Deploy to EC2
       - name: Deploy to EC2
         env:
-          DOCKER_IMAGE: $DOCKER_REPO:latest
+          DOCKER_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/action-test-node-app
+          DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/action-test-node-app:latest
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USER: ${{ secrets.EC2_USER }}
         run: |
+          # Debugging: Print Docker variables
+          echo "Docker repository: $DOCKER_REPO"
+          echo "Docker image to deploy: $DOCKER_IMAGE"
+
           # Save the private key for SSH access
           echo "${{ secrets.EC2_SSH_KEY }}" > ec2_key.pem
           chmod 600 ec2_key.pem
-
-          # Debugging: Print the Docker image value before SSH
-          echo "Docker image to deploy: $DOCKER_IMAGE"
 
           # SSH into EC2 and deploy
           ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_HOST << EOF
@@ -65,7 +68,7 @@ jobs:
             # Pull the latest Docker image
             sudo docker pull $DOCKER_IMAGE
 
-            # Stop and remove the existing container if it exists
+            # Check if the container exists and is running, then stop and remove it
             if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^demo-backend\$"; then
               echo "Stopping and removing existing container..."
               sudo docker stop demo-backend || true
