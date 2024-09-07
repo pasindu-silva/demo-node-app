@@ -1,0 +1,61 @@
+name: Deploy to AWS EC2
+
+on:
+  workflow_dispatch:  # Allows manual triggering of the workflow
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      DOCKER_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/action-test-node-app  # Define the Docker repository name here
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Log in to Docker Hub
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    # Step 3: Build the Docker image
+    - name: Build Docker image
+      run: |
+        docker build -t $DOCKER_REPO:latest .
+
+    # Step 4: Push the Docker image to Docker Hub
+    - name: Push Docker image to Docker Hub
+      run: |
+        docker push $DOCKER_REPO:latest
+
+    # Step 5: Deploy to EC2
+    - name: Deploy to EC2
+      env:
+        DOCKER_IMAGE: $DOCKER_REPO:latest
+        EC2_HOST: ${{ secrets.EC2_HOST }}
+        EC2_USER: ${{ secrets.EC2_USER }}
+      run: |
+        # Save the private key for SSH access
+        echo "${{ secrets.EC2_SSH_KEY }}" > ec2_key.pem
+        chmod 600 ec2_key.pem
+
+        # SSH into EC2 and deploy
+        ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_HOST << 'EOF'
+          # Pull the latest Docker image
+          docker pull $DOCKER_IMAGE
+
+          # Stop and remove the existing container if running
+          docker stop demo-backend || true
+          docker rm demo-backend || true
+
+          # Run the new Docker container
+          docker run -d --name demo-backend -p 8080:8080 $DOCKER_IMAGE
+        EOF
+
+    # Cleanup
+    - name: Remove SSH key
+      run: rm -f ec2_key.pem
