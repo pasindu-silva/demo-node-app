@@ -44,12 +44,15 @@ jobs:
           chmod 600 ec2_key.pem
 
           # SSH into EC2 and deploy
-          ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_HOST << EOF
+          ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_HOST << 'EOF'
+            # Debugging: Print Docker image format and other variables
+            echo "Docker image: $DOCKER_IMAGE"
+
             # Log in to Docker Hub on EC2 instance
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | sudo docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-            # Verify that DOCKER_IMAGE has a valid format
-            if [[ ! "$DOCKER_IMAGE" =~ ^[a-z0-9]+([._-][a-z0-9]+)*\/[a-z0-9]+([._-][a-z0-9]+)*:[a-z0-9]+$ ]]; then
+            # Check if DOCKER_IMAGE has a valid format
+            if [[ -z "$DOCKER_IMAGE" || "$DOCKER_IMAGE" == *"/"* && "$DOCKER_IMAGE" == *":"* ]]; then
               echo "Error: Invalid Docker image format: $DOCKER_IMAGE"
               exit 1
             fi
@@ -57,17 +60,17 @@ jobs:
             # Pull the latest Docker image
             sudo docker pull $DOCKER_IMAGE
 
-            # Check if the container exists and is running, then stop and remove it
+            # Stop and remove the existing container if it exists
             if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^demo-backend\$"; then
               echo "Stopping and removing existing container..."
-              sudo docker stop demo-backend
-              sudo docker rm demo-backend
+              sudo docker stop demo-backend || true
+              sudo docker rm demo-backend || true
             else
               echo "Container demo-backend does not exist, skipping stop and remove steps."
             fi
 
             # Run the new Docker container
-            sudo docker run -d --name demo-backend -p 8080:8080 $DOCKER_IMAG
+            sudo docker run -d --name demo-backend -p 8080:8080 $DOCKER_IMAGE
           EOF
 
       # Cleanup
