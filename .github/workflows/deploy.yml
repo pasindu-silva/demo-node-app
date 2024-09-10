@@ -44,7 +44,7 @@ jobs:
         run: |
           DOCKER_REPO=${{ secrets.DOCKERHUB_USERNAME }}/action-test-node-app
           echo "Building Docker image with repo: $DOCKER_REPO"
-          docker build -t $DOCKER_REPO:${{ env.TAG }} -t $DOCKER_REPO:latest.
+          docker build -t $DOCKER_REPO:${{ env.TAG }} -t $DOCKER_REPO:latest .
 
       # Step 4: Push the Docker image to Docker Hub
       - name: Push Docker image to Docker Hub
