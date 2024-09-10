@@ -13,18 +13,24 @@ jobs:
         uses: actions/checkout@v3
 
       # Extract the GitHub Release Tag
-      - name: Extract GitHub Release Tag
-        id: get_tag
+      - name: Get the latest tag
+        id: get_latest_tag
         run: |
-          # Extract the tag from the ref 
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            TAG="${GITHUB_REF#refs/tags/}"
-            echo "Release tag: $TAG"
-            echo "TAG=$TAG" >> $GITHUB_ENV
-          else
-            echo "Error: This workflow was not triggered by a tag."
-            exit 1
+          # Fetch all tags
+          git fetch --tags
+          
+          # Find the latest tag on the current branch
+          # This command finds the latest tag reachable from the current commit
+          TAG=$(git describe --tags --abbrev=0 $(git rev-list --tags --max-count=1))
+          echo "Latest tag: $TAG"
+
+          # If no tag is found, set a default value or handle it appropriately
+          if [ -z "$TAG" ]; then
+            echo "No tags found, setting default tag to 'latest'"
+            TAG="latest"
           fi
+          
+          echo "TAG=$TAG" >> $GITHUB_ENV
           
       # Step 2: Log in to Docker Hub
       - name: Log in to Docker Hub
