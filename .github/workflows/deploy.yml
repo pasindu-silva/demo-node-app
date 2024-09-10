@@ -12,6 +12,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Extract the GitHub Release Tag
+      - name: Extract GitHub Release Tag
+        id: get_tag
+        run: |
+          # Extract the tag from the ref 
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+            echo "Release tag: $TAG"
+            echo "TAG=$TAG" >> $GITHUB_ENV
+          else
+            echo "Error: This workflow was not triggered by a tag."
+            exit 1
+          fi
+          
       # Step 2: Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -30,14 +44,14 @@ jobs:
       - name: Push Docker image to Docker Hub
         run: |
           DOCKER_REPO=${{ secrets.DOCKERHUB_USERNAME }}/action-test-node-app
-          echo "Pushing Docker image with repo: $DOCKER_REPO"
-          docker push $DOCKER_REPO:latest
+          echo "Building Docker image with repo: $DOCKER_REPO and tag: $TAG"
+          docker push $DOCKER_REPO:$TAG
 
       # Step 5: Deploy to EC2
       - name: Deploy to EC2
         env:
           DOCKER_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/action-test-node-app
-          DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/action-test-node-app:latest
+          DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/action-test-node-app:${{ env.TAG }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USER: ${{ secrets.EC2_USER }}
           ENV_FILE_BASE64: ${{ secrets.ENV_FILE_BASE64 }}
