@@ -107,7 +107,7 @@ jobs:
             fi
 
             # Run the new Docker container
-            sudo docker run -d --name demo-backend --env-file .env -p 8080:8080 $DOCKER_IMAGE
+            sudo docker run -d --name demo-backend --restart always --env-file .env -p 8080:8080 $DOCKER_IMAGE
           EOF
 
       # Cleanup
