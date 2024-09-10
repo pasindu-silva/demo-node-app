@@ -1,10 +1,22 @@
 import express from "express";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const PORT = process.env.PORT || 8080;
 const app = express();
 
 app.get("/", (req, res) => {
-  res.json({ message: "Health check pass !!! - Build and Deploy seperation" });
+  const data = {
+    appId: process.env.APP_ID,
+    baseUrl: process.env.BASE_URL,
+    mlModel: process.env.ML_MODEL,
+    health: true,
+  };
+  res.json({
+    data: data,
+    message: "Health check pass !!! - Build and Deploy seperation",
+  });
 });
 
 app.listen(PORT, () => {
