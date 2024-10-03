@@ -16,9 +16,11 @@ pipeline {
 
     stages {
         stage('Auto Trigger Param Test') {
-            script {
-                echo "Showing triggered param : ${params.ENVIRONMENT_NAME}"
-                error("Error throw for testing webhooks")
+            steps {
+                script {
+                    echo "Showing triggered param : ${params.ENVIRONMENT_NAME}"
+                    error("Error throw for testing webhooks")
+                }
             }
         }
 
