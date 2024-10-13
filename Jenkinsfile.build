@@ -18,6 +18,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
+                    echo "BUILD_CAUSE: ${env.BUILD_CAUSE}"
                     if (env.BUILD_CAUSE == 'SCMTrigger') {
                         echo 'This build was triggered by a webhook (SCMTrigger)'
                         echo 'Can be used to trigger the developer branch'
