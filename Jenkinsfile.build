@@ -27,10 +27,16 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
+                    if (env.BUILD_CAUSE == 'SCMTrigger') {
+                        echo 'This build was triggered by a webhook (SCMTrigger)'
+                        echo 'Can be used to trigger the developer branch'
+                    } else {
+                        echo 'This build was not triggered by a webhook'
+                    }
+
                     echo "ENV Params: ${params.ENVIRONMENT_NAME}"
 
-                    def branchName = getBranchNameByEnvironment(params.ENVIRONMENT_NAME)
-
+                    def branchName = "jenkins-flow-test"
                     // Checkout the repository because things like release tags need to be accessed later
                     checkout([$class: 'GitSCM',
                               branches: [[name: "*/${branchName}"]], // Check the tags for the branch main
@@ -42,64 +48,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Get Latest Release Tag') {
-            steps {
-                script {
-                    // Fetch all tags from the remote
-                    sh 'git fetch --tags'
-
-                    // Get the latest tag reachable from the current branch
-                    def releaseTag = sh(
-                        script: 'git describe --tags --abbrev=0',
-                        returnStdout: true
-                    ).trim()
-
-                    if (!releaseTag) {
-                        error 'No release tag found. Terminating the pipeline.'
-                    }
-
-                    // Print the tag
-                    echo "GitHub Release Tag: ${releaseTag}"
-                    // Save the release tag to an environment variable
-                    GITHUB_RELEASE_TAG = releaseTag
-                }
-            }
-        }
-
-        stage('Build docker image') {
-            steps {
-                script {
-                    echo "${GITHUB_RELEASE_TAG}"
-                    // dockerImage = docker.build("${DOCKER_HUB_REPO}:${env.BUILD_ID}")
-                    dockerImage = docker.build("${DOCKER_HUB_REPO}:${GITHUB_RELEASE_TAG}")
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_HUB_CREDENTIALS_ID}") {
-                        dockerImage.push()
-                    }
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            cleanWs()
-        }
-        success {
-            // Trigger the deploy pipeline with the GitHub release tag and environment
-            build job: "${BUILD_PIPELINE_NAME}", parameters: [
-                string(name: 'GITHUB_RELEASE_TAG', value: "${GITHUB_RELEASE_TAG}"),
-                string(name: 'ENVIRONMENT_NAME', value: "${params.ENVIRONMENT_NAME}")
-            ]
-        }
-    }
 }
 
 // Function to get the branch name based on the environment
