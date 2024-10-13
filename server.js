@@ -15,7 +15,7 @@ app.get("/", (req, res) => {
   };
   res.json({
     data: data,
-    message: "Health check pass !!! - Build and Deploy seperation",
+    message: "Health check pass !!! - Build and Deploy separation - main branch push check",
   });
 });
 
