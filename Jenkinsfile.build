@@ -24,8 +24,6 @@ pipeline {
                     // Check the _class property for specific build causes
                     if (buildCauses.any { it._class == 'com.cloudbees.jenkins.GitHubPushCause' }) {
                         echo 'This build was triggered by a GitHub push.'
-                    } else if (buildCauses.any { it._class == 'hudson.model.UserIdCause' }) {
-                        echo 'This build was manually triggered by a user.'
                     } else {
                         echo 'This build was triggered by another cause.'
                     }
