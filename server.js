@@ -15,7 +15,7 @@ app.get("/", (req, res) => {
   };
   res.json({
     data: data,
-    message: "Greetings from the healthcheck",
+    message: "Greetings from the healthcheck - from flow test",
   });
 });
 
