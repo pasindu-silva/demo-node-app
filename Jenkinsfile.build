@@ -21,11 +21,13 @@ pipeline {
                     def buildCauses = currentBuild.getBuildCauses()
                     echo "Build Causes: ${buildCauses}"
 
-                    if (env.BUILD_CAUSE == 'SCMTrigger') {
-                        echo 'This build was triggered by a webhook (SCMTrigger)'
-                        echo 'Can be used to trigger the developer branch'
+                    // Detect specific build causes
+                    if (buildCauses.any { it instanceof com.cloudbees.jenkins.GitHubPushCause }) {
+                        echo 'This build was triggered by a GitHub push.'
+                    } else if (buildCauses.any { it instanceof hudson.model.UserIdCause }) {
+                        echo 'This build was manually triggered by a user.'
                     } else {
-                        echo 'This build was not triggered by a webhook'
+                        echo 'This build was triggered by another cause.'
                     }
 
                     echo "ENV Params: ${params.ENVIRONMENT_NAME}"
