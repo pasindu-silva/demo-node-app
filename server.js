@@ -15,7 +15,7 @@ app.get("/", (req, res) => {
   };
   res.json({
     data: data,
-    message: "Health check pass !!! - Build and Deploy seperation",
+    message: "Greetings from the healthcheck",
   });
 });
 
