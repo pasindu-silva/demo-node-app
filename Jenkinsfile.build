@@ -48,19 +48,5 @@ pipeline {
                 }
             }
         }
-}
-
-// Function to get the branch name based on the environment
-def getBranchNameByEnvironment(env) {
-    switch (env) {
-        case 'dev':
-            return 'dev'
-        case 'prod':
-            return 'main'
-        case 'qa':
-            return 'qa'
-        default:
-            error "Invalid environment: ${env}"
     }
 }
-
