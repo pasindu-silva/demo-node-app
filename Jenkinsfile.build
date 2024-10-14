@@ -93,7 +93,7 @@ pipeline {
         }
         success {
             script {
-                echo 'Trigerring the deploy pipeline ${GITHUB_BRANCH}'
+                echo "Trigerring the deploy pipeline: ${GITHUB_BRANCH}"
                 def deployEnv = getDeploymentEnvByBranch(GITHUB_BRANCH)
 
                
