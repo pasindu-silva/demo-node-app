@@ -103,7 +103,7 @@ pipeline {
 def getDeploymentEnvByBranch( branch_name ) {
     switch (branch_name) {
         case 'origin/main':
-            return 'main'
+            return 'prod'
         case 'origin/develop':
             return 'dev'
         default:
