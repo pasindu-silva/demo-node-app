@@ -47,7 +47,7 @@ pipeline {
         stage('Format the branch name') {
             steps { 
                 script {
-                    GITHUB_BRANCH = 'origin/' + env.GITHUB_BRANCH
+                    GITHUB_BRANCH = 'origin/' + env.GIT_BRANCH
                 }
             }
         }
