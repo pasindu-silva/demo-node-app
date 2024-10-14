@@ -39,7 +39,6 @@ pipeline {
 
         // Variables that will be updated later in the process
         // Keep the following empty at the point of initialization
-        GITHUB_BRANCH = ''
         TAG = ''
     }
 
@@ -47,7 +46,7 @@ pipeline {
         stage('🔗 Prepare TAG') {
             steps {
                 script {
-                    if (GITHUB_BRANCH == DEV_BRANCH) {
+                    if (env.GIT_BRANCH == DEV_BRANCH) {
                         TAG = 'dev'
                     }else {
                         TAG = params.GIT_TAG
@@ -85,7 +84,7 @@ pipeline {
         }
         success {
             script {
-                def deployEnv = getDeploymentEnvByBranch(GITHUB_BRANCH)
+                def deployEnv = getDeploymentEnvByBranch(env.GIT_BRANCH)
 
                 echo "Trigerring the deploy pipeline"
                 build job: "${DEPLOY_PIPELINE_NAME}", parameters: [
