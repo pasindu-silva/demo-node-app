@@ -93,7 +93,7 @@ pipeline {
         }
         success {
             script {
-                def deployEnv = getDeploymentEnv(env.DEPLOY_AFTER_BUILD)
+                def deployEnv = getDeploymentEnvByBranch(env.DEPLOY_AFTER_BUILD)
 
                 echo 'Trigerring the deploy pipeline'
                 build job: "${DEPLOY_PIPELINE_NAME}", parameters: [
