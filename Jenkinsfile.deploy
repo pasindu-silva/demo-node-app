@@ -1,9 +1,6 @@
 pipeline {
     agent any
 
-    // Update these choices with your preferred environment values
-    def DEPLOY_ENV_CHOICES = ['dev', 'prod']
-
     environment {
         // Update with your DockerHub repo path
         DOCKER_HUB_REPO = 'pasindusilvartc/demo-app'
@@ -38,7 +35,7 @@ pipeline {
         */
         choice(
             name: 'DEPLOY_ENV',
-            choices: DEPLOY_ENV_CHOICES,
+            choices: ['dev', 'prod'],  // Update these choices with your preferred environment values
             description: 'Select the deployment environment for this version'
         )
     }
