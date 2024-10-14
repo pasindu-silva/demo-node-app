@@ -111,7 +111,7 @@ pipeline {
 */
 def getDeploymentEnvByBranch( branch_name ) {
     switch (branch_name) {
-        case 'origin/develop':
+        case 'origin/main':
             return 'main'
         case 'origin/develop':
             return 'dev'
