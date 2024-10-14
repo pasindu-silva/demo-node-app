@@ -49,11 +49,6 @@ pipeline {
                         error 'DEPLOY_ENV is required and cannot be empty.'
                     }
 
-                    def validEnvs = DEPLOY_ENV_CHOICES
-                    if (!params.DEPLOY_ENV in validEnvs) {
-                        error "DEPLOY_ENV must be one of the following: ${validEnvs.join(', ')}. Provided: ${params.DEPLOY_ENV}"
-                    }
-
                     // Validate TAG
                     if (!params.GIT_TAG?.trim()) {
                         error 'TAG is required and cannot be empty.'
