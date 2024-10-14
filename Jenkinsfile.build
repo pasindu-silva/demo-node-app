@@ -20,7 +20,7 @@ pipeline {
 
     environment {
         // Update with your GitHub repo path
-        GITHUB_REPO = 'rootcodelabs/rtc-connect'
+        GITHUB_REPO = 'pasindu-silva/demo-node-app'
 
         // Update with the credentials id you used to store the GitHub credentials in the Jenkins
         GITHUB_CREDENTIALS_ID = 'demoapp-github-credentials-id'
@@ -29,13 +29,13 @@ pipeline {
         DEV_BRANCH = 'origin/develop'
 
         // Update with your DockerHub repo path
-        DOCKER_HUB_REPO = 'rootcodelabs/rtc-connect' 
+        DOCKER_HUB_REPO = 'pasindusilvartc/demo-app' 
 
         // Update with the credentials id you used to store the DockerHub credentials in the Jenkins
-        DOCKER_HUB_CREDENTIALS_ID = 'rtc-dockerhub-credentials-id' 
+        DOCKER_HUB_CREDENTIALS_ID = 'demoapp-dockerhub2-credentials-id' 
 
         // Update with the name of your deployment pipeline. This is required to trigger the deployment pipeline after the build
-        DEPLOY_PIPELINE_NAME = 'rtc-connect-deploy-pipeline'
+        DEPLOY_PIPELINE_NAME = 'rtcfoundation-deploy-pipeline'
 
         // Variables that will be updated later in the process
         // Keep the following empty at the point of initialization
