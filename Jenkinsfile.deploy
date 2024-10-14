@@ -1,6 +1,9 @@
 pipeline {
     agent any
 
+    // Update these choices with your preferred environment values
+    def DEPLOY_ENV_CHOICES = ['dev', 'prod']
+
     environment {
         // Update with your DockerHub repo path
         DOCKER_HUB_REPO = 'pasindusilvartc/demo-app'
@@ -16,9 +19,6 @@ pipeline {
 
         // Update with the credentials id you used to store the Digital Ocean SSH password
         SSH_CREDENTIALS_PSW = credentials('digitalocean-stage-server-4-ssh-password')
-
-        // Update these choices with your preferred environment values
-        DEPLOY_ENV_CHOICES = ['dev', 'prod']
     }
 
     parameters {
