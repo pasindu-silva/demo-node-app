@@ -44,14 +44,6 @@ pipeline {
     }
 
     stages {
-        stage('Format the branch name') {
-            steps { 
-                script {
-                    GITHUB_BRANCH = 'origin/' + env.GIT_BRANCH
-                }
-            }
-        }
-
         stage('🔗 Prepare TAG') {
             steps {
                 script {
@@ -93,10 +85,9 @@ pipeline {
         }
         success {
             script {
-                echo "Trigerring the deploy pipeline: ${GITHUB_BRANCH}"
                 def deployEnv = getDeploymentEnvByBranch(GITHUB_BRANCH)
 
-               
+                echo "Trigerring the deploy pipeline"
                 build job: "${DEPLOY_PIPELINE_NAME}", parameters: [
                     string(name: 'GIT_TAG', value: "${TAG}"),
                     string(name: 'DEPLOY_ENV', value: "${deployEnv}")
