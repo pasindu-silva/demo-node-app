@@ -93,9 +93,10 @@ pipeline {
         }
         success {
             script {
+                echo 'Trigerring the deploy pipeline ${GITHUB_BRANCH}'
                 def deployEnv = getDeploymentEnvByBranch(GITHUB_BRANCH)
 
-                echo 'Trigerring the deploy pipeline ${GITHUB_BRANCH}'
+               
                 build job: "${DEPLOY_PIPELINE_NAME}", parameters: [
                     string(name: 'GIT_TAG', value: "${TAG}"),
                     string(name: 'DEPLOY_ENV', value: "${deployEnv}")
