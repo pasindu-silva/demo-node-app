@@ -2,32 +2,110 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_REPO = 'pasindusilvartc/demo-node-app-repo'
-        SSH_CREDENTIALS_ID = 'demoapp-aws-ssh-credentials-id'
-        EC2_HOST = '54.210.66.151'
-        EC2_USERNAME = 'ubuntu'
-        APP_NAME = 'demo-node-app'
+        // Update with your DockerHub repo path
+        DOCKER_HUB_REPO = 'rootcodelabs/rtc-connect'
+
+        // Update with the App Name that you want to use for the container
+        APP_NAME = 'rtc-connect'
+
+        // Update with your Digital Ocean server IP
+        DEPLOY_HOST = '157.245.61.32'
+
+        // Update with the username of the Digital Ocean SSH connection 
+        SSH_CREDENTIALS_USR = 'pasindus'
+
+        // Update with the credentials id you used to store the Digital Ocean SSH password
+        SSH_CREDENTIALS_PSW = credentials('digitalocean-stage-server-4-ssh-password')
+
+        // Update these choices with your preferred environment values
+        DEPLOY_ENV_CHOICES = ['dev', 'prod']
     }
-    
+
     parameters {
-        string(name: 'GITHUB_RELEASE_TAG', defaultValue: '', description: 'Release tag of the build to deploy')
-        choice(name: 'ENVIRONMENT_NAME', choices: ['dev', 'prod', 'qa'], description: 'Environment name for the deployment')
+        /*
+        * Using the "Git Parameter Plug-In"
+        * To fetch the Release Tags from the GitHub repository
+        */
+        gitParameter(name: 'GIT_TAG',
+            type: 'PT_TAG',
+            defaultValue: 'latest',
+            description: 'Select the Release Tag of the build that you want to deploy'
+        )
+
+        /*
+        * Choice parameter used to pick what's the environment that needs to be deployed
+        * Useful when generating the app-name of the Docker container
+        */
+        choice(
+            name: 'DEPLOY_ENV',
+            choices: DEPLOY_ENV_CHOICES,
+            description: 'Select the deployment environment for this version'
+        )
     }
-    
+
     stages {
-        stage('Deploy to EC2') {
+        stage('✏️ Validate Inputs') {
             steps {
-                sshagent(credentials: ["${SSH_CREDENTIALS_ID}"]) {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} '
-                    sudo docker pull ${DOCKER_HUB_REPO}:${GITHUB_RELEASE_TAG}
-                    sudo docker stop ${APP_NAME}-${params.ENVIRONMENT_NAME} || true
-                    sudo docker rm ${APP_NAME}-${params.ENVIRONMENT_NAME} || true
-                    sudo docker run -d --name ${APP_NAME}-${params.ENVIRONMENT_NAME} -p 8080:8080 ${DOCKER_HUB_REPO}:${GITHUB_RELEASE_TAG} --env ENVIRONMENT_NAME=${params.ENVIRONMENT_NAME}
-                    '
+                script {
+                    // Validate the DEPLOY_ENV
+                    if (!params.DEPLOY_ENV?.trim()) {
+                        error 'DEPLOY_ENV is required and cannot be empty.'
+                    }
+
+                    def validEnvs = DEPLOY_ENV_CHOICES
+                    if (!params.DEPLOY_ENV in validEnvs) {
+                        error "DEPLOY_ENV must be one of the following: ${validEnvs.join(', ')}. Provided: ${params.DEPLOY_ENV}"
+                    }
+
+                    // Validate TAG
+                    if (!params.GIT_TAG?.trim()) {
+                        error 'TAG is required and cannot be empty.'
+                    }
+                }
+            }
+        }
+
+        /*
+        * The deployment is done by SSH into the Digital Ocean droplet
+        */
+        stage('🚀 Deploy to Digital Ocean Droplet') {
+            steps {
+                script {
+                    def ports = getPorts(params.DEPLOY_ENV)
+
+                    echo "Github release tag: ${params.GIT_TAG}"
+                    echo "Env passed: ${params.DEPLOY_ENV}"
+                    echo "Host port: ${ports.hostPort}, Container port: ${ports.containerPort}"
+
+                    sshCommand remote: [
+                        name: APP_NAME,
+                        user: SSH_CREDENTIALS_USR,
+                        host: DEPLOY_HOST,
+                        password: SSH_CREDENTIALS_PSW,
+                        port: 22,
+                        allowAnyHosts: true
+                    ], command: """
+                        sudo docker pull ${DOCKER_HUB_REPO}:${params.GIT_TAG} && \
+                        if [ \$(sudo docker ps -a -q -f name=${APP_NAME}-${params.DEPLOY_ENV}) ]; then
+                            sudo docker stop ${APP_NAME}-${params.DEPLOY_ENV} && \
+                            sudo docker rm ${APP_NAME}-${params.DEPLOY_ENV};
+                        fi
+                        sudo docker run -d --name ${APP_NAME}-${params.DEPLOY_ENV} -p ${ports.hostPort}:${ports.containerPort} ${DOCKER_HUB_REPO}:${params.GIT_TAG}
                     """
                 }
             }
         }
+    }
+}
+
+// Update this function for the port mapping which is required
+def getPorts(env) {
+    switch (env) {
+        case 'prod':
+            return [hostPort: '4001', containerPort: '3000']
+        case 'dev':
+            return [hostPort: '4002', containerPort: '3000']
+        default:
+            error "Unknown environment: ${env}"
     }
 }
