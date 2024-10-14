@@ -3,10 +3,10 @@ pipeline {
 
     environment {
         // Update with your DockerHub repo path
-        DOCKER_HUB_REPO = 'rootcodelabs/rtc-connect'
+        DOCKER_HUB_REPO = 'pasindusilvartc/demo-app'
 
         // Update with the App Name that you want to use for the container
-        APP_NAME = 'rtc-connect'
+        APP_NAME = 'demoapp'
 
         // Update with your Digital Ocean server IP
         DEPLOY_HOST = '157.245.61.32'
