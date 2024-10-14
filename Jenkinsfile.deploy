@@ -94,9 +94,9 @@ pipeline {
 def getPorts(env) {
     switch (env) {
         case 'prod':
-            return [hostPort: '4001', containerPort: '3000']
+            return [hostPort: '4001', containerPort: '8080']
         case 'dev':
-            return [hostPort: '4002', containerPort: '3000']
+            return [hostPort: '4002', containerPort: '8080']
         default:
             error "Unknown environment: ${env}"
     }
