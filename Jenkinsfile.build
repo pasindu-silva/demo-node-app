@@ -1,87 +1,86 @@
+/*
+* Feel free to use this template and update it to meet your unique requirements 😊
+* Also feel free to make any suggestions to improve these template files 🙌
+*/
+
 pipeline {
     agent any
 
     parameters {
-        choice(name: 'ENVIRONMENT_NAME', choices: ['dev', 'prod', 'qa'], description: 'Select the environment that you want to build. This will take the branch associated with the environment name to build')
+        /*
+        * Using the "Git Parameter Plug-In"
+        * To fetch the Release Tags from the GitHub repository
+        */
+        gitParameter(name: 'GIT_TAG',
+            type: 'PT_TAG',
+            defaultValue: 'latest',
+            description: 'Select a Git Release Tag to build'
+        )
     }
 
     environment {
-        DOCKER_HUB_REPO = 'pasindusilvartc/demo-node-app-repo'
-        DOCKER_HUB_CREDENTIALS_ID = 'demoapp-dockerhub-credentials-id'
-        BUILD_PIPELINE_NAME = 'demoapp-deploy-prod-pipeline'
-        GITHUB_RELEASE_TAG = ""
-        GITHUB_REPO = 'pasindu-silva/demo-node-app'
+        // Update with your GitHub repo path
+        GITHUB_REPO = 'rootcodelabs/rtc-connect'
+
+        // Update with the credentials id you used to store the GitHub credentials in the Jenkins
         GITHUB_CREDENTIALS_ID = 'demoapp-github-credentials-id'
+
+        // Update with your dev branch name, required when creating the build tag for the dev branch
+        DEV_BRANCH = 'origin/develop'
+
+        // Update with your DockerHub repo path
+        DOCKER_HUB_REPO = 'rootcodelabs/rtc-connect' 
+
+        // Update with the credentials id you used to store the DockerHub credentials in the Jenkins
+        DOCKER_HUB_CREDENTIALS_ID = 'rtc-dockerhub-credentials-id' 
+
+        // Update with the name of your deployment pipeline. This is required to trigger the deployment pipeline after the build
+        DEPLOY_PIPELINE_NAME = 'rtc-connect-deploy-pipeline'
+
+        // Variables that will be updated later in the process
+        // Keep the following empty at the point of initialization
+        GITHUB_BRANCH = ''
+        TAG = ''
     }
 
     stages {
-        stage('Auto Trigger Param Test') {
-            steps {
+        stage('Format the branch name') {
+            steps { 
                 script {
-                    echo "Showing triggered param : ${params.ENVIRONMENT_NAME}"
-                    error("Error throw for testing webhooks")
+                    GITHUB_BRANCH = 'origin/' + env.GITHUB_BRANCH
                 }
             }
         }
 
-        stage('Checkout') {
+        stage('🔗 Prepare TAG') {
             steps {
                 script {
-                    echo "ENV Params: ${params.ENVIRONMENT_NAME}"
-
-                    def branchName = getBranchNameByEnvironment(params.ENVIRONMENT_NAME)
-
-                    // Checkout the repository because things like release tags need to be accessed later
-                    checkout([$class: 'GitSCM',
-                              branches: [[name: "*/${branchName}"]], // Check the tags for the branch main
-                              doGenerateSubmoduleConfigurations: false,
-                              extensions: [],
-                              userRemoteConfigs: [[url: "https://github.com/${GITHUB_REPO}.git",
-                                                   credentialsId: "${GITHUB_CREDENTIALS_ID}"]]
-                    ])
-                }
-            }
-        }
-
-        stage('Get Latest Release Tag') {
-            steps {
-                script {
-                    // Fetch all tags from the remote
-                    sh 'git fetch --tags'
-
-                    // Get the latest tag reachable from the current branch
-                    def releaseTag = sh(
-                        script: 'git describe --tags --abbrev=0',
-                        returnStdout: true
-                    ).trim()
-
-                    if (!releaseTag) {
-                        error 'No release tag found. Terminating the pipeline.'
+                    if (GITHUB_BRANCH == DEV_BRANCH) {
+                        TAG = 'dev'
+                    }else {
+                        TAG = params.GIT_TAG
                     }
-
-                    // Print the tag
-                    echo "GitHub Release Tag: ${releaseTag}"
-                    // Save the release tag to an environment variable
-                    GITHUB_RELEASE_TAG = releaseTag
                 }
             }
         }
 
-        stage('Build docker image') {
+        stage('🔧 Build docker image') {
             steps {
                 script {
-                    echo "${GITHUB_RELEASE_TAG}"
-                    // dockerImage = docker.build("${DOCKER_HUB_REPO}:${env.BUILD_ID}")
-                    dockerImage = docker.build("${DOCKER_HUB_REPO}:${GITHUB_RELEASE_TAG}")
+                    if (!TAG) {
+                        error 'TAG is not available. Failing the pipeline.'
+                    }
+                    dockerImage = docker.build("${DOCKER_HUB_REPO}:${TAG}")
                 }
             }
         }
 
-        stage('Push Docker Image') {
+        stage('📦 Push Docker Image to Docker Hub') {
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_HUB_CREDENTIALS_ID}") {
-                        dockerImage.push()
+                        // Push versioned tag
+                        dockerImage.push("${TAG}")
                     }
                 }
             }
@@ -93,26 +92,30 @@ pipeline {
             cleanWs()
         }
         success {
-            // Trigger the deploy pipeline with the GitHub release tag and environment
-            build job: "${BUILD_PIPELINE_NAME}", parameters: [
-                string(name: 'GITHUB_RELEASE_TAG', value: "${GITHUB_RELEASE_TAG}"),
-                string(name: 'ENVIRONMENT_NAME', value: "${params.ENVIRONMENT_NAME}")
-            ]
+            script {
+                def deployEnv = getDeploymentEnv(env.DEPLOY_AFTER_BUILD)
+
+                echo 'Trigerring the deploy pipeline'
+                build job: "${DEPLOY_PIPELINE_NAME}", parameters: [
+                    string(name: 'GIT_TAG', value: "${TAG}"),
+                    string(name: 'DEPLOY_ENV', value: "${deployEnv}")
+                ]
+            }
         }
     }
 }
 
-// Function to get the branch name based on the environment
-def getBranchNameByEnvironment(env) {
-    switch (env) {
-        case 'dev':
-            return 'dev'
-        case 'prod':
+/*
+* Function to return the deployment env value based on the branch name 
+* Update the following function body to meet your branch names and environment names
+*/
+def getDeploymentEnvByBranch( branch_name ) {
+    switch (branch_name) {
+        case 'origin/develop':
             return 'main'
-        case 'qa':
-            return 'qa'
+        case 'origin/develop':
+            return 'dev'
         default:
-            error "Invalid environment: ${env}"
+            error 'Invalid branch name to generate the deployment env'
     }
 }
-
